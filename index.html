@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recall Radar — Car, Food, Medicine & Product Recall Alerts</title>
+<meta name="description" content="Find out in seconds if your car, medicine, food, or kids' products have been recalled. Free recall checker using official U.S. government data.">
+<meta name="theme-color" content="#0f1b2d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta property="og:title" content="Recall Radar — Is anything you own recalled?">
+<meta property="og:description" content="Check your car, medicine, food, and kids' products against official recall data in seconds.">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0f1b2d; --navy-2:#18283f; --ink:#13202f; --muted:#5b6b7f; --line:#e3e8ef;
+  --bg:#f4f6f9; --card:#ffffff; --signal:#ff5a1f; --signal-soft:#fff0e9;
+  --red:#d92d20; --red-soft:#fdecea; --amber:#b54708; --amber-soft:#fef3e2;
+  --green:#067647; --green-soft:#e7f6ec; --blue:#175cd3; --blue-soft:#eaf1fd;
+  --radius:16px; --shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.45}
+h1,h2,h3,.brand{font-family:Manrope,Inter,system-ui,sans-serif;letter-spacing:-.01em}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--blue)}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 160px}
+/* Header */
+.top{background:var(--navy);color:#fff;padding:18px 0 22px;position:relative;overflow:hidden}
+.top .wrap{padding-bottom:0}
+.top::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,90,31,.0) 38%,rgba(255,90,31,.22) 39%,rgba(255,90,31,0) 41%,rgba(255,90,31,0) 58%,rgba(255,90,31,.16) 59%,rgba(255,90,31,0) 61%,rgba(255,90,31,0) 78%,rgba(255,90,31,.1) 79%,rgba(255,90,31,0) 81%);pointer-events:none}
+.brandrow{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;flex:none}
+.brand{font-weight:800;font-size:20px}
+.brand span{color:var(--signal)}
+.tagline{color:#b8c4d6;font-size:14px;margin:10px 0 0}
+.summary{margin-top:16px;background:var(--navy-2);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px}
+.summary .dot{width:12px;height:12px;border-radius:50%;flex:none;background:#3ccf7a;box-shadow:0 0 0 5px rgba(60,207,122,.18)}
+.summary .dot.alert{background:var(--signal);box-shadow:0 0 0 5px rgba(255,90,31,.22);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(255,90,31,.25)}50%{box-shadow:0 0 0 9px rgba(255,90,31,.05)}}
+.summary .txt{flex:1;font-size:14px;color:#dbe3ee}
+.summary .txt b{color:#fff;font-size:15px;display:block}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+.btn-primary{background:var(--signal);color:#fff}
+.btn-primary:active{transform:translateY(1px)}
+.btn-ghost{background:rgba(255,255,255,.1);color:#fff}
+.btn-light{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn-sm{padding:8px 12px;font-size:14px;border-radius:10px}
+.btn-block{width:100%}
+.btn[disabled]{opacity:.55;cursor:default}
+/* Sections */
+.section-h{display:flex;justify-content:space-between;align-items:center;margin:22px 2px 10px}
+.section-h h2{font-size:18px;margin:0}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line)}
+.empty{padding:22px 18px;text-align:center}
+.empty h2{font-size:22px;margin:4px 0 6px}
+.empty p{color:var(--muted);margin:0 0 16px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 12px;text-align:left;display:flex;flex-direction:column;gap:8px;transition:border-color .15s,box-shadow .15s}
+.tile:hover{border-color:#c7d0dc;box-shadow:var(--shadow)}
+.tile .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center}
+.tile b{font-size:15px}
+.tile small{color:var(--muted);font-size:12.5px;line-height:1.3}
+.ic.car{background:var(--blue-soft);color:var(--blue)}
+.ic.drug{background:#f3eefe;color:#6941c6}
+.ic.food{background:var(--green-soft);color:var(--green)}
+.ic.product{background:var(--amber-soft);color:var(--amber)}
+/* Items */
+.items{display:flex;flex-direction:column;gap:10px}
+.item{overflow:hidden}
+.item-head{display:flex;align-items:center;gap:12px;padding:14px;width:100%;background:none;border:0;text-align:left}
+.item-head .ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none}
+.item-head .meta{flex:1;min-width:0}
+.item-head .name{font-weight:600;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-head .sub{color:var(--muted);font-size:13px}
+.pill{font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.pill.clear{background:var(--green-soft);color:var(--green)}
+.pill.alert{background:var(--red-soft);color:var(--red)}
+.pill.warn{background:var(--amber-soft);color:var(--amber)}
+.pill.wait{background:#eef1f5;color:var(--muted)}
+.pill.new{background:var(--signal);color:#fff;margin-left:6px}
+.chev{transition:transform .2s;color:#98a2b3;flex:none}
+.item.open .chev{transform:rotate(180deg)}
+.item-body{display:none;border-top:1px solid var(--line);padding:12px 14px 14px;background:#fbfcfd}
+.item.open .item-body{display:block}
+.recall{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.recall .row1{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.sev{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:3px 8px;border-radius:6px}
+.sev.urgent{background:var(--red);color:#fff}
+.sev.serious{background:var(--amber-soft);color:var(--amber)}
+.sev.info{background:#eef1f5;color:var(--muted)}
+.recall .date{color:var(--muted);font-size:12.5px}
+.recall h3{font-size:15px;margin:2px 0 6px;line-height:1.3}
+.recall p{margin:0 0 8px;font-size:14px;color:#344054}
+.recall .more{display:none}
+.recall.expanded .more{display:block}
+.kv{font-size:13.5px;margin:8px 0 0}
+.kv b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px}
+.recall .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.linkbtn{background:none;border:0;color:var(--blue);font-weight:600;font-size:14px;padding:6px 0}
+.note{font-size:13px;color:var(--muted);background:var(--blue-soft);border-radius:10px;padding:10px 12px;margin:0 0 10px}
+.note.past{background:#f2f4f7}
+.item-tools{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+.danger{color:var(--red)}
+/* Feed */
+.seg{display:flex;background:#e9edf2;border-radius:12px;padding:4px;gap:4px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:none;padding:8px 6px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+/* Tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.tabbar .in{max-width:560px;margin:0 auto;display:flex}
+.tabbar button{flex:1;border:0;background:none;padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:600;color:#98a2b3}
+.tabbar button.on{color:var(--navy)}
+.tabbar button.on svg{color:var(--signal)}
+.fab{position:fixed;right:max(16px,calc(50% - 264px));bottom:84px;z-index:21;box-shadow:0 8px 24px rgba(255,90,31,.35);border-radius:999px;padding:14px 20px}
+/* Sheet */
+.scrim{position:fixed;inset:0;background:rgba(15,27,45,.5);z-index:40;display:none;align-items:flex-end;justify-content:center}
+.scrim.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 4px;font-size:20px}
+.sheet .lead{color:var(--muted);margin:0 0 14px;font-size:14.5px}
+.sheet-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.x{border:0;background:#f2f4f7;border-radius:50%;width:32px;height:32px;display:grid;place-items:center;flex:none}
+label.f{display:block;font-size:13px;font-weight:600;margin:12px 0 6px;color:#344054}
+input.in,select.in{width:100%;padding:12px 13px;border:1px solid #cfd6df;border-radius:12px;background:#fff;font-size:16px}
+input.in:focus,select.in:focus{outline:2px solid rgba(255,90,31,.35);border-color:var(--signal)}
+.or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:16px 0 4px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.hint{font-size:12.5px;color:var(--muted);margin-top:6px}
+.err{color:var(--red);font-size:13.5px;margin-top:8px;min-height:1px}
+.price{display:flex;gap:10px;margin:14px 0}
+.price .opt{flex:1;border:2px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.price .opt.best{border-color:var(--signal);background:var(--signal-soft)}
+.price .opt b{font-size:20px;display:block;font-family:Manrope,Inter,system-ui,sans-serif}
+.list-check{list-style:none;padding:0;margin:8px 0 0}
+.list-check li{padding:6px 0 6px 26px;position:relative;font-size:14.5px}
+.list-check li::before{content:"";position:absolute;left:2px;top:10px;width:14px;height:8px;border-left:2.5px solid var(--green);border-bottom:2.5px solid var(--green);transform:rotate(-45deg)}
+/* settings */
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid var(--line);gap:10px}
+.set-row:last-child{border-bottom:0}
+.set-row .t{font-weight:600}
+.set-row .d{color:var(--muted);font-size:13px}
+.foot{color:var(--muted);font-size:12px;text-align:center;margin:26px 8px 0;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:12px;font-size:14px;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%}
+.toast.show{opacity:1}
+.demo-banner{background:#fff4cc;color:#6b4e00;font-size:13px;text-align:center;padding:7px 12px}
+.spin{width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+.skeleton{height:66px;border-radius:14px;background:linear-gradient(90deg,#eef1f5,#f7f8fa,#eef1f5);background-size:200% 100%;animation:sk 1.2s infinite;margin-bottom:10px}
+@keyframes sk{to{background-position:-200% 0}}
+.hidden{display:none!important}
+.share-card{display:flex;gap:12px;align-items:center;padding:14px;margin-top:12px}
+.share-card .t{flex:1;font-size:14px}
+.share-card .t b{display:block;font-size:15px}
+</style>
+</head>
+<body>
+<div id="demoBanner" class="demo-banner hidden">Preview mode: showing sample data, not real recalls.</div>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brandrow">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#ff5a1f"/><g fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M18 46a20 20 0 0 1 0-28"/><path d="M26 39a10 10 0 0 1 0-14"/><path d="M46 18a20 20 0 0 1 0 28"/><path d="M38 25a10 10 0 0 1 0 14"/></g><circle cx="32" cy="32" r="4.5" fill="#fff"/></svg>
+      <div class="brand">Recall<span>Radar</span></div>
+    </div>
+    <p class="tagline" id="tagline">Is anything you own recalled? Find out in seconds.</p>
+    <div class="summary" id="summary">
+      <div class="dot" id="sumDot"></div>
+      <div class="txt" id="sumTxt"><b>Nothing on your radar yet</b>Add your car, medicine, food, or kids' products.</div>
+      <button class="btn btn-ghost btn-sm hidden" id="checkAllBtn">Check now</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- MY STUFF -->
+  <section id="view-home">
+    <div id="emptyState" class="card empty" style="margin-top:18px">
+      <h2>What should we watch for you?</h2>
+      <p>Pick something you own. We check it against official U.S. recall records from NHTSA, FDA, and CPSC.</p>
+      <div class="tiles" id="emptyTiles"></div>
+    </div>
+    <div id="homeList" class="hidden">
+      <div class="section-h"><h2>My stuff</h2><span class="pill wait" id="countPill"></span></div>
+      <div class="items" id="items"></div>
+      <div class="card share-card" id="shareCard">
+        <div class="t"><b>Know someone with kids or an older car?</b>Send them Recall Radar. It's free to check.</div>
+        <button class="btn btn-light btn-sm" id="shareBtn">Share</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LATEST -->
+  <section id="view-latest" class="hidden">
+    <div class="section-h"><h2>Latest recalls</h2><button class="linkbtn" id="feedRefresh">Refresh</button></div>
+    <div class="seg" id="feedSeg">
+      <button data-f="food" class="on">Food</button>
+      <button data-f="drug">Medicine</button>
+      <button data-f="product">Kids &amp; home</button>
+    </div>
+    <p class="note" id="feedNote">The most serious (Class I) food recalls reported to the FDA, newest first.</p>
+    <div id="feed"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="view-settings" class="hidden">
+    <div class="section-h"><h2>Settings</h2></div>
+    <div class="card">
+      <div class="set-row"><div><div class="t">Your plan</div><div class="d" id="planTxt"></div></div><button class="btn btn-primary btn-sm" id="upgradeBtn">Go Pro</button></div>
+      <div class="set-row"><div><div class="t">Install on your phone</div><div class="d" id="installTxt">Add Recall Radar to your home screen like a regular app.</div></div><button class="btn btn-light btn-sm" id="installBtn">How</button></div>
+      <div class="set-row"><div><div class="t">Back up my list</div><div class="d">Copy your list to save it or move it to another phone.</div></div><button class="btn btn-light btn-sm" id="exportBtn">Copy</button></div>
+      <div class="set-row"><div><div class="t">Restore a list</div><div class="d">Paste a list you backed up.</div></div><button class="btn btn-light btn-sm" id="importBtn">Paste</button></div>
+      <div class="set-row"><div><div class="t danger">Clear everything</div><div class="d">Removes your list from this device.</div></div><button class="btn btn-light btn-sm" id="resetBtn">Clear</button></div>
+    </div>
+    <div class="section-h"><h2>About</h2></div>
+    <div class="card">
+      <div class="set-row"><div><div class="t">Where the data comes from</div><div class="d">Vehicles: NHTSA (U.S. Dept. of Transportation). Food &amp; medicine: U.S. Food and Drug Administration (openFDA). Kids &amp; home products: U.S. Consumer Product Safety Commission.</div></div></div>
+      <div class="set-row"><div><div class="t">Your privacy</div><div class="d">Your list stays on this device. No account needed.</div></div><a class="btn btn-light btn-sm" href="privacy.html">Read</a></div>
+      <div class="set-row"><div><div class="t">Terms of use</div><div class="d">Important limits on what this app can tell you.</div></div><a class="btn btn-light btn-sm" href="terms.html">Read</a></div>
+      <div class="set-row" id="contactRow"><div><div class="t">Contact</div><div class="d" id="contactTxt"></div></div></div>
+    </div>
+  </section>
+
+  <p class="foot">Recall Radar is an independent app and is not affiliated with or endorsed by NHTSA, FDA, or CPSC. Recall information comes from public government data and can be delayed or incomplete. Always confirm with the official source and follow the manufacturer's instructions.</p>
+</main>
+
+<button class="btn btn-primary fab" id="fab">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add something
+</button>
+
+<nav class="tabbar"><div class="in">
+  <button data-v="home" class="on"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49M7.76 16.24a6 6 0 0 1 0-8.49M19.07 4.93a10 10 0 0 1 0 14.14M4.93 19.07a10 10 0 0 1 0-14.14"/></svg>My stuff</button>
+  <button data-v="latest"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Latest</button>
+  <button data-v="settings"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>
+</div></nav>
+
+<div class="scrim" id="scrim"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   RECALL RADAR — settings you can change
+   ========================================================= */
+const CONFIG = {
+  appName: "Recall Radar",
+  freeLimit: 3,                 // how many items free users can watch
+  priceMonthly: "$2.99",
+  priceYearly: "$19.99",
+  // Paste your Stripe (or Lemon Squeezy) payment links here. Leave "" to show "coming soon".
+  paymentLinkMonthly: "",
+  paymentLinkYearly: "",
+  // SHA-256 fingerprints of your Pro unlock codes (make them with tools/make-pro-code.html)
+  proCodeHashes: [],
+  supportEmail: "",             // e.g. "help@yourdomain.com"
+  shareUrl: ""                  // your live web address, e.g. "https://recallradar.netlify.app"
+};
+</script>
+
+<script>
+(function(){
+"use strict";
+const DEMO = !!window.RR_DEMO || /[?&]demo\b/.test(location.search);
+// Google Play rules: apps from Play can't sell digital upgrades with outside payment links.
+let IN_PLAY = false;
+try { if (document.referrer.startsWith("android-app://")) sessionStorage.setItem("rr_play","1"); IN_PLAY = sessionStorage.getItem("rr_play") === "1"; } catch(e){}
+const STORE_KEY = "rr_state_v1";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+/* ---------- storage ---------- */
+let state = { items: [], pro: false, feedCache: {} };
+function load(){
+  if (DEMO) { state.items = demoItems(); return; }
+  try { const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null"); if (s && Array.isArray(s.items)) state = Object.assign(state, s); } catch(e){}
+}
+function save(){ if (DEMO) return; try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch(e){} }
+
+/* ---------- icons ---------- */
+const ICONS = {
+  vehicle:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M5 17a2 2 0 1 1-4 0v-5l2.5-5.5A2 2 0 0 1 5.3 5h13.4a2 2 0 0 1 1.8 1.5L23 12v5a2 2 0 1 1-4 0"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M3 12h18"/></svg>',
+  drug:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>',
+  food:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>',
+  product:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/></svg>'
+};
+const TYPES = {
+  vehicle:{ label:"Car or truck", hint:"Safety recalls from NHTSA", cls:"car" },
+  drug:{ label:"Medicine", hint:"Prescription & over-the-counter", cls:"drug" },
+  food:{ label:"Food", hint:"Brands & products you buy", cls:"food" },
+  product:{ label:"Kids & home", hint:"Cribs, car seats, toys, appliances", cls:"product" }
+};
+
+/* ---------- network ---------- */
+const NHTSA = "https://api.nhtsa.gov", VPIC = "https://vpic.nhtsa.dot.gov/api/vehicles", FDA = "https://api.fda.gov", CPSC = "https://www.saferproducts.gov/RestWebServices/Recall";
+async function fetchJSON(url){
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 20000);
+  try {
+    const r = await fetch(url, { signal: ctl.signal, headers: { "Accept": "application/json" } });
+    if (r.status === 404) return { __notFound: true };
+    if (!r.ok) { const e = new Error("HTTP " + r.status); e.status = r.status; throw e; }
+    const txt = await r.text();
+    try { return JSON.parse(txt); } catch(e){ const er = new Error("bad json"); er.badJson = true; throw er; }
+  } finally { clearTimeout(t); }
+}
+const viaProxy = {}; // remembers which data sites need the backup route
+async function getJSON(url){
+  if (DEMO) return demoFetch(url);
+  const host = new URL(url).hostname;
+  const proxied = () => fetchJSON("/api/proxy?url=" + encodeURIComponent(url));
+  if (viaProxy[host]) return proxied();
+  try { return await fetchJSON(url); }
+  catch (e) {
+    if (e.status && e.status < 500 && e.status !== 403 && e.status !== 429) throw e;
+    // Backup route through our own server (see netlify/functions/proxy.js)
+    const j = await proxied(); viaProxy[host] = true; return j;
+  }
+}
+
+/* ---------- helpers ---------- */
+function parseDate(s){
+  if (!s) return null;
+  s = String(s);
+  if (/^\d{8}$/.test(s)) return new Date(+s.slice(0,4), +s.slice(4,6)-1, +s.slice(6,8));
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m){ let a=+m[1], b=+m[2], y=+m[3]; let d, mo; if (a>12){d=a;mo=b} else if (b>12){mo=a;d=b} else {d=a;mo=b} return new Date(y, mo-1, d); }
+  const d = new Date(s); return isNaN(d) ? null : d;
+}
+const fmtDate = d => d ? d.toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" }) : "";
+function ago(ts){
+  if (!ts) return "never"; const s = (Date.now()-ts)/1000;
+  if (s < 60) return "just now"; if (s < 3600) return Math.floor(s/60)+" min ago"; if (s < 86400) return Math.floor(s/3600)+" hr ago";
+  return Math.floor(s/86400)+" days ago";
+}
+const titleCase = s => String(s||"").toLowerCase().replace(/\s*:\s*/g, ": ").replace(/(^|[\s\-\/(:])([a-z])/g, (m,a,b)=>a+b.toUpperCase());
+const clip = (s,n) => { s = String(s||"").replace(/\s+/g," ").trim(); return s.length>n ? s.slice(0,n-1).trim()+"…" : s; };
+const monthsAgo = n => { const d = new Date(); d.setMonth(d.getMonth()-n); return d; };
+
+/* ---------- normalizers (turn each agency's format into one shape) ---------- */
+function fromNHTSA(r){
+  const outside = r.parkOutSide || r.parkOutside;
+  const urgent = r.parkIt || outside;
+  const yr = (r.NHTSACampaignNumber||"").match(/^(\d{2})V/);
+  return {
+    id: r.NHTSACampaignNumber, source:"NHTSA",
+    title: titleCase(r.Component || "Safety recall"),
+    date: parseDate(r.ReportReceivedDate) || (yr ? new Date(2000 + +yr[1], 0, 1) : null),
+    sev: urgent ? "urgent" : "serious",
+    sevText: r.parkIt ? "Do not drive" : outside ? "Park outside" : "Safety recall",
+    summary: r.Summary, active: true,
+    details: [["What can happen", r.Consequence], ["The fix", r.Remedy], ["Recall number", r.NHTSACampaignNumber + (r.Manufacturer ? " · " + r.Manufacturer : "")]],
+    link: "https://www.nhtsa.gov/recalls?nhtsaId=" + encodeURIComponent(r.NHTSACampaignNumber||""), linkText: "Official NHTSA notice"
+  };
+}
+function fromFDA(r, kind){
+  const cls = r.classification || "";
+  const d = parseDate(r.recall_initiation_date || r.report_date);
+  const active = /ongoing/i.test(r.status||"") || (d && d > monthsAgo(24));
+  return {
+    id: r.recall_number || r.event_id, source:"FDA",
+    title: clip(r.product_description, 140),
+    date: d,
+    sev: cls === "Class I" ? "urgent" : cls === "Class II" ? "serious" : "info",
+    sevText: cls === "Class I" ? "Most serious" : cls === "Class II" ? "Serious" : (cls || "Recall"),
+    summary: r.reason_for_recall, active,
+    status: r.status,
+    details: [["Company", r.recalling_firm], ["Lot / codes to check", clip(r.code_info, 600)], ["Where it was sold", clip(r.distribution_pattern, 300)], ["Status", r.status], ["FDA class", cls ? cls + " — " + (cls==="Class I"?"could cause serious health problems or death":cls==="Class II"?"could cause temporary or reversible health problems":"unlikely to cause health problems") : ""]],
+    link: kind === "drug" ? "https://www.fda.gov/drugs/drug-safety-and-availability/drug-recalls" : "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts",
+    linkText: "FDA recalls page"
+  };
+}
+function fromCPSC(r){
+  const hz = (r.Hazards||[]).map(h=>h.Name).filter(Boolean).join(" ");
+  const rem = (r.Remedies||[]).map(h=>h.Name).filter(Boolean).join(" ");
+  const sold = (r.Retailers||[]).map(h=>h.Name).filter(Boolean).join(", ");
+  const units = (r.Products||[]).map(p=>p.NumberOfUnits).filter(Boolean)[0];
+  const d = parseDate(r.RecallDate);
+  const urgent = /death|died|fire|burn|chok|strangulat|suffocat|entrap|tip-?over|ingest|lead|poison|fall/i.test(hz + " " + (r.Title||""));
+  return {
+    id: String(r.RecallNumber || r.RecallID), source:"CPSC",
+    title: r.Title || "Product recall", date: d,
+    sev: urgent ? "urgent" : "serious", sevText: urgent ? "Injury risk" : "Safety recall",
+    summary: r.Description, active: d ? d > monthsAgo(36) : true,
+    details: [["Hazard", hz], ["What to do", rem], ["Sold at", clip(sold, 300)], ["Units", units], ["Contact", clip(r.ConsumerContact, 400)]],
+    link: r.URL || "https://www.cpsc.gov/Recalls", linkText: "Official CPSC notice"
+  };
+}
+
+/* ---------- checking an item ---------- */
+function fdaSearch(term){
+  const t = encodeURIComponent(term.replace(/"/g,""));
+  return ["product_description","openfda.brand_name","openfda.generic_name"].map(f => f + ":%22" + t + "%22").join("+OR+");
+}
+async function checkItem(item){
+  const q = item.q; let list = [];
+  if (item.type === "vehicle"){
+    const j = await getJSON(`${NHTSA}/recalls/recallsByVehicle?make=${encodeURIComponent(q.make)}&model=${encodeURIComponent(q.model)}&modelYear=${encodeURIComponent(q.year)}`);
+    list = (j.results || []).map(fromNHTSA);
+  } else if (item.type === "drug" || item.type === "food"){
+    const j = await getJSON(`${FDA}/${item.type}/enforcement.json?search=${fdaSearch(q.term)}&sort=report_date:desc&limit=50`);
+    list = j.__notFound ? [] : (j.results || []).map(r => fromFDA(r, item.type));
+  } else if (item.type === "product"){
+    const t = encodeURIComponent(q.term);
+    const [a, b] = await Promise.all([
+      getJSON(`${CPSC}?format=json&ProductName=${t}`).catch(()=>[]),
+      getJSON(`${CPSC}?format=json&RecallTitle=${t}`).catch(()=>[])
+    ]);
+    const seen = new Set(); list = [];
+    [].concat(Array.isArray(a)?a:[], Array.isArray(b)?b:[]).forEach(r => { const k = r.RecallID||r.RecallNumber; if (!seen.has(k)){ seen.add(k); list.push(fromCPSC(r)); } });
+  }
+  // de-duplicate & sort newest first
+  const m = new Map(); list.forEach(r => { if (r.id && !m.has(r.id)) m.set(r.id, r); });
+  list = [...m.values()].sort((x,y) => (y.date||0) - (x.date||0));
+  return list;
+}
+async function runCheck(item, {quiet} = {}){
+  item.checking = true; item.error = null; render();
+  try {
+    const res = await checkItem(item);
+    const prevSeen = new Set(item.seen || []);
+    item.newIds = item.lastChecked ? res.filter(r => r.active && !prevSeen.has(r.id)).map(r => r.id) : [];
+    item.results = res.map(r => Object.assign({}, r, { date: r.date ? r.date.getTime() : null }));
+    item.seen = res.map(r => r.id);
+    item.lastChecked = Date.now();
+  } catch(e){
+    item.error = "Couldn't reach the recall database. Check your connection and try again.";
+  }
+  item.checking = false; save(); render();
+}
+async function checkAll(){
+  const btn = $("#checkAllBtn"); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+  for (const it of state.items) await runCheck(it, {quiet:true});
+  btn.disabled = false; btn.textContent = "Check now";
+  toast("All checked");
+}
+
+/* ---------- rendering ---------- */
+function itemStatus(it){
+  if (it.checking) return { cls:"wait", txt:'<span class="spin" style="width:12px;height:12px"></span> Checking' };
+  if (it.error) return { cls:"warn", txt:"Try again" };
+  if (!it.results) return { cls:"wait", txt:"Not checked" };
+  const act = it.results.filter(r=>r.active);
+  if (!act.length) return { cls:"clear", txt:"All clear" };
+  return { cls: act.some(r=>r.sev==="urgent") ? "alert" : "warn", txt: act.length + (act.length===1 ? " recall" : " recalls") };
+}
+function recallHTML(r, isNew){
+  const det = r.details.filter(d => d[1]).map(d => `<div class="kv"><b>${esc(d[0])}</b>${esc(d[1])}</div>`).join("");
+  return `<div class="recall">
+    <div class="row1"><span class="sev ${r.sev}">${esc(r.sevText)}</span>${isNew?'<span class="pill new">NEW</span>':''}<span class="date">${esc(fmtDate(r.date ? new Date(r.date) : null))}</span></div>
+    <h3>${esc(r.title)}</h3>
+    <p>${esc(clip(r.summary, 260))}</p>
+    <div class="more">${r.summary && r.summary.length > 260 ? `<p>${esc(r.summary)}</p>` : ""}${det}</div>
+    <div class="actions"><button class="linkbtn" data-act="more">Show details</button><a class="linkbtn" href="${esc(r.link)}" target="_blank" rel="noopener">${esc(r.linkText)} ↗</a></div>
+  </div>`;
+}
+function itemHTML(it){
+  const st = itemStatus(it); const T = TYPES[it.type];
+  const res = it.results || []; const act = res.filter(r=>r.active); const past = res.filter(r=>!r.active);
+  const newSet = new Set(it.newIds || []);
+  let body = "";
+  if (it.error) body += `<p class="note past">${esc(it.error)}</p>`;
+  if (it.type === "vehicle" && it.results){
+    body += `<p class="note">These are recalls for every ${esc(it.label)}. Your car may already be fixed. Enter your VIN on the <a href="https://www.nhtsa.gov/recalls" target="_blank" rel="noopener">official NHTSA lookup</a> to see open recalls for your exact car, then call a dealer. Recall repairs are free.</p>`;
+  }
+  if (it.results && !act.length) body += `<p class="note" style="background:var(--green-soft);color:var(--green)">No ${it.type==="vehicle"?"":"recent "}recalls found for "${esc(it.label)}" in ${it.type==="vehicle"?"NHTSA":it.type==="product"?"CPSC":"FDA"} records.${it.type!=="vehicle"?" Try a brand name too, for the best match.":""}</p>`;
+  if (act.length && it.type !== "vehicle") body += `<p class="note">Check the lot number, size, or date on your package against the details below. Matching the name alone doesn't mean yours is affected.</p>`;
+  body += act.map(r => recallHTML(r, newSet.has(r.id))).join("");
+  if (past.length) body += `<details style="margin:6px 0 10px"><summary style="cursor:pointer;color:var(--muted);font-size:14px">${past.length} older recall${past.length>1?"s":""} (likely finished)</summary><div style="margin-top:10px">${past.slice(0,15).map(r=>recallHTML(r,false)).join("")}</div></details>`;
+  body += `<div class="item-tools"><span class="hint">Checked ${esc(ago(it.lastChecked))}</span><span><button class="linkbtn" data-act="recheck">Check again</button> · <button class="linkbtn danger" data-act="remove">Remove</button></span></div>`;
+  const newCount = act.filter(r=>newSet.has(r.id)).length;
+  return `<div class="card item ${it.open?"open":""}" data-id="${it.id}">
+    <button class="item-head" data-act="toggle">
+      <span class="ic ${T.cls}">${ICONS[it.type]}</span>
+      <span class="meta"><div class="name">${esc(it.label)}</div><div class="sub">${esc(T.label)}</div></span>
+      <span><span class="pill ${st.cls}">${st.txt}</span>${newCount?'<span class="pill new">NEW</span>':''}</span>
+      <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="item-body">${body}</div>
+  </div>`;
+}
+function tilesHTML(){
+  return Object.entries(TYPES).map(([k,T]) => `<button class="tile" data-add="${k}"><span class="ic ${T.cls}">${ICONS[k]}</span><b>${T.label}</b><small>${T.hint}</small></button>`).join("");
+}
+function render(){
+  const has = state.items.length > 0;
+  $("#emptyState").classList.toggle("hidden", has);
+  $("#homeList").classList.toggle("hidden", !has);
+  $("#emptyTiles").innerHTML = tilesHTML();
+  $("#items").innerHTML = state.items.map(itemHTML).join("");
+  $("#countPill").textContent = state.pro ? `${state.items.length} watched` : `${state.items.length} of ${CONFIG.freeLimit} free`;
+  // summary
+  const alerts = state.items.filter(it => (it.results||[]).some(r=>r.active)).length;
+  const checking = state.items.some(it=>it.checking);
+  const last = Math.max(0, ...state.items.map(it=>it.lastChecked||0));
+  $("#checkAllBtn").classList.toggle("hidden", !has);
+  $("#sumDot").classList.toggle("alert", alerts > 0);
+  $("#sumDot").style.opacity = has ? "" : ".35";
+  if (!$("#view-home").classList.contains("hidden")) $("#fab").classList.toggle("hidden", !has);
+  if (!has) $("#sumTxt").innerHTML = "<b>Nothing on your radar yet</b>Add your car, medicine, food, or kids' products.";
+  else if (checking) $("#sumTxt").innerHTML = "<b>Checking official records…</b>This takes a few seconds.";
+  else if (alerts) $("#sumTxt").innerHTML = `<b>${alerts} of ${state.items.length} ${alerts===1?"needs":"need"} your attention</b>Tap an item below to see what to do. Checked ${esc(ago(last))}.`;
+  else $("#sumTxt").innerHTML = `<b>All clear on ${state.items.length} item${state.items.length>1?"s":""}</b>Checked ${esc(ago(last))}. Check back anytime.`;
+  $("#planTxt").textContent = state.pro ? "Pro — unlimited items. Thank you!" : `Free — watch up to ${CONFIG.freeLimit} items.`;
+  $("#upgradeBtn").classList.toggle("hidden", state.pro);
+  $("#contactTxt").textContent = CONFIG.supportEmail || "Add your support email in the app settings (CONFIG).";
+}
+
+/* ---------- sheet (pop-up panel) ---------- */
+function openSheet(html){ $("#sheet").innerHTML = html; $("#scrim").classList.add("show"); document.body.style.overflow = "hidden"; }
+function closeSheet(){ $("#scrim").classList.remove("show"); document.body.style.overflow = ""; }
+$("#scrim").addEventListener("click", e => { if (e.target.id === "scrim") closeSheet(); });
+const sheetTop = (t, lead) => `<div class="sheet-top"><div><h2>${t}</h2>${lead?`<p class="lead">${lead}</p>`:""}</div><button class="x" data-close aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>`;
+$("#sheet").addEventListener("click", e => { if (e.target.closest("[data-close]")) closeSheet(); });
+
+function startAdd(type){
+  if (!state.pro && state.items.length >= CONFIG.freeLimit) return showPaywall(true);
+  if (!type) return openSheet(sheetTop("What do you want to check?", "We'll compare it with official recall records.") + `<div class="tiles" id="pickTiles">${tilesHTML()}</div>`);
+  if (type === "vehicle") return addVehicle();
+  const ex = { drug:"e.g. Metformin, Tylenol, eye drops", food:"e.g. peanut butter, brand name, frozen spinach", product:"e.g. crib, car seat, stroller, brand name" }[type];
+  const title = { drug:"Add a medicine", food:"Add a food", product:"Add a kids' or home product" }[type];
+  const lead = { drug:"Use the name on the bottle. Brand or generic both work.", food:"Use a brand name or product type. Brand names give the best matches.", product:"Use the product type or the brand. Example: \"Graco car seat\" or just \"crib\"." }[type];
+  openSheet(sheetTop(title, lead) + `
+    <form id="termForm"><label class="f" for="term">Name</label><input class="in" id="term" placeholder="${esc(ex)}" autocomplete="off" required maxlength="60">
+    <div class="err" id="termErr"></div>
+    <button class="btn btn-primary btn-block" style="margin-top:14px" type="submit">Check for recalls</button></form>`);
+  setTimeout(()=>$("#term").focus(), 50);
+  $("#termForm").addEventListener("submit", e => {
+    e.preventDefault(); const v = $("#term").value.trim();
+    if (v.length < 2) { $("#termErr").textContent = "Type at least 2 letters."; return; }
+    addItem({ type, label: titleCase(v), q: { term: v } });
+  });
+}
+async function addVehicle(){
+  openSheet(sheetTop("Add a car or truck", "Pick the year, make, and model. Or enter your VIN and we'll fill it in.") + `
+    <label class="f" for="vin">VIN (optional)</label>
+    <div style="display:flex;gap:8px"><input class="in" id="vin" placeholder="17 characters, on your dashboard or insurance card" maxlength="17" autocomplete="off" style="text-transform:uppercase"><button class="btn btn-light" id="vinBtn" type="button">Look up</button></div>
+    <div class="err" id="vinErr"></div>
+    <div class="or">or choose</div>
+    <label class="f" for="yr">Year</label><select class="in" id="yr"><option value="">Loading years…</option></select>
+    <label class="f" for="mk">Make</label><select class="in" id="mk" disabled><option value="">Choose a year first</option></select>
+    <label class="f" for="md">Model</label><select class="in" id="md" disabled><option value="">Choose a make first</option></select>
+    <div class="err" id="vehErr"></div>
+    <button class="btn btn-primary btn-block" style="margin-top:14px" id="vehSave" disabled>Check for recalls</button>`);
+  const yr = $("#yr"), mk = $("#mk"), md = $("#md"), save = $("#vehSave");
+  const opts = (arr, ph) => `<option value="">${ph}</option>` + arr.map(v => `<option value="${esc(v)}">${esc(titleCase(v))}</option>`).join("");
+  try {
+    const j = await getJSON(`${NHTSA}/products/vehicle/modelYears?issueType=r`);
+    let years = (j.results||[]).map(r=>r.modelYear).filter(y => +y >= 1950 && +y <= new Date().getFullYear()+2).sort((a,b)=>b-a);
+    yr.innerHTML = opts(years, "Choose year");
+  } catch(e){ yr.innerHTML = opts([], "Couldn't load — check connection"); }
+  yr.onchange = async () => {
+    mk.disabled = md.disabled = save.disabled = true; md.innerHTML = opts([], "Choose a make first");
+    if (!yr.value) return; mk.innerHTML = opts([], "Loading…");
+    try { const j = await getJSON(`${NHTSA}/products/vehicle/makes?modelYear=${yr.value}&issueType=r`);
+      mk.innerHTML = opts([...new Set((j.results||[]).map(r=>r.make))].sort(), "Choose make"); mk.disabled = false;
+    } catch(e){ mk.innerHTML = opts([], "Couldn't load"); }
+  };
+  mk.onchange = async () => {
+    md.disabled = save.disabled = true; if (!mk.value) return; md.innerHTML = opts([], "Loading…");
+    try { const j = await getJSON(`${NHTSA}/products/vehicle/models?modelYear=${yr.value}&make=${encodeURIComponent(mk.value)}&issueType=r`);
+      md.innerHTML = opts([...new Set((j.results||[]).map(r=>r.model))].sort(), "Choose model"); md.disabled = false;
+    } catch(e){ md.innerHTML = opts([], "Couldn't load"); }
+  };
+  md.onchange = () => { save.disabled = !md.value; };
+  save.onclick = () => addItem({ type:"vehicle", label:`${yr.value} ${titleCase(mk.value)} ${titleCase(md.value)}`, q:{ year:yr.value, make:mk.value, model:md.value } });
+  $("#vinBtn").onclick = async () => {
+    const vin = $("#vin").value.trim().toUpperCase(); $("#vinErr").textContent = "";
+    if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) { $("#vinErr").textContent = "A VIN is 17 letters and numbers (no I, O, or Q)."; return; }
+    $("#vinBtn").innerHTML = '<span class="spin"></span>';
+    try {
+      const j = await getJSON(`${VPIC}/DecodeVinValues/${vin}?format=json`);
+      const r = (j.Results||[])[0] || {};
+      if (!r.Make || !r.Model || !r.ModelYear) throw new Error("x");
+      addItem({ type:"vehicle", label:`${r.ModelYear} ${titleCase(r.Make)} ${titleCase(r.Model)}`, q:{ year:r.ModelYear, make:r.Make, model:r.Model, vin } });
+    } catch(e){ $("#vinErr").textContent = "We couldn't read that VIN. Double-check it, or choose year, make, and model below."; }
+    $("#vinBtn").textContent = "Look up";
+  };
+}
+function addItem(it){
+  const key = it.type + "|" + JSON.stringify(it.q).toLowerCase();
+  if (state.items.some(x => x.type + "|" + JSON.stringify(x.q).toLowerCase() === key)) { closeSheet(); toast("Already on your list"); return; }
+  const item = Object.assign({ id: uid(), added: Date.now(), open: true }, it);
+  state.items.forEach(x => x.open = false);
+  state.items.unshift(item); save(); closeSheet(); show("home"); render(); window.scrollTo({top:0, behavior:"smooth"});
+  runCheck(item);
+}
+
+/* ---------- Pro / paywall ---------- */
+function showPaywall(fromLimit){
+  const link = (u, label, cls) => u ? `<a class="btn ${cls} btn-block" href="${esc(u)}" target="_blank" rel="noopener">${label}</a>` : `<button class="btn ${cls} btn-block" disabled>${label} — coming soon</button>`;
+  openSheet(sheetTop(fromLimit ? "You've used your free spots" : "Recall Radar Pro", fromLimit ? `Free covers ${CONFIG.freeLimit} items. Go Pro to watch everything your family owns.` : "Watch everything your family owns.") + `
+    <ul class="list-check"><li>Unlimited cars, medicines, foods, and products</li><li>One list for the whole household</li><li>Supports an independent app that keeps recall data free to check</li></ul>
+    <div class="price"><div class="opt"><b>${CONFIG.priceMonthly}</b>per month</div><div class="opt best"><b>${CONFIG.priceYearly}</b>per year · best value</div></div>
+    ${IN_PLAY ? `<p class="note">Pro isn't available to buy in this version of the app yet.</p>` : link(CONFIG.paymentLinkYearly, "Get Pro yearly", "btn-primary") + '<div style="height:8px"></div>' + link(CONFIG.paymentLinkMonthly, "Get Pro monthly", "btn-light")}
+    <label class="f" for="code" style="margin-top:18px">Already paid? Enter your Pro code</label>
+    <div style="display:flex;gap:8px"><input class="in" id="code" placeholder="Code from your receipt" autocomplete="off"><button class="btn btn-light" id="codeBtn">Unlock</button></div>
+    <div class="err" id="codeErr"></div>`);
+  $("#codeBtn").onclick = async () => {
+    const c = $("#code").value.trim().toUpperCase(); if (!c) return;
+    const h = await sha256(c);
+    if (CONFIG.proCodeHashes.includes(h)) { state.pro = true; save(); closeSheet(); render(); toast("Pro unlocked. Thank you!"); }
+    else $("#codeErr").textContent = "That code didn't work. Check your receipt email.";
+  };
+}
+async function sha256(s){
+  try { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+  catch(e){ return ""; }
+}
+
+/* ---------- Latest feed ---------- */
+let feedKind = "food";
+async function loadFeed(force){
+  const box = $("#feed"); const kind = feedKind;
+  const cached = state.feedCache[kind];
+  if (!force && cached && Date.now() - cached.t < 3*3600*1000) return drawFeed(cached.list);
+  box.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+  try {
+    let list;
+    if (kind === "product"){
+      const d = monthsAgo(2); const ds = d.toISOString().slice(0,10);
+      const j = await getJSON(`${CPSC}?format=json&RecallDateStart=${ds}`);
+      list = (Array.isArray(j) ? j : []).map(fromCPSC);
+    } else {
+      const j = await getJSON(`${FDA}/${kind}/enforcement.json?search=classification:%22Class+I%22&sort=report_date:desc&limit=20`);
+      list = (j.results||[]).map(r => fromFDA(r, kind));
+    }
+    list.sort((a,b)=>(b.date||0)-(a.date||0));
+    list = list.slice(0, 25).map(r => Object.assign({}, r, { date: r.date ? r.date.getTime() : null }));
+    state.feedCache[kind] = { t: Date.now(), list }; save();
+    if (kind === feedKind) drawFeed(list);
+  } catch(e){
+    if (kind === feedKind) box.innerHTML = `<div class="card empty"><p>Couldn't load the latest recalls. Check your connection.</p><button class="btn btn-light btn-sm" id="feedRetry">Try again</button></div>`;
+    const b = $("#feedRetry"); if (b) b.onclick = () => loadFeed(true);
+  }
+}
+function drawFeed(list){
+  const box = $("#feed");
+  if (!list.length) { box.innerHTML = `<div class="card empty"><p>No new recalls in this category right now.</p></div>`; return; }
+  box.innerHTML = list.map(r => recallHTML(r, false)).join("");
+}
+$("#feedSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  feedKind = b.dataset.f; [...$("#feedSeg").children].forEach(x => x.classList.toggle("on", x === b));
+  $("#feedNote").textContent = feedKind === "product" ? "Products recalled by the Consumer Product Safety Commission in the last 2 months." : `The most serious (Class I) ${feedKind === "food" ? "food" : "medicine"} recalls reported to the FDA, newest first.`;
+  loadFeed();
+});
+$("#feedRefresh").onclick = () => loadFeed(true);
+$("#feed").addEventListener("click", e => { const m = e.target.closest('[data-act="more"]'); if (m) toggleMore(m); });
+
+/* ---------- events ---------- */
+function toggleMore(btn){ const r = btn.closest(".recall"); r.classList.toggle("expanded"); btn.textContent = r.classList.contains("expanded") ? "Hide details" : "Show details"; }
+$("#items").addEventListener("click", e => {
+  const el = e.target.closest("[data-act]"); if (!el) return;
+  const card = el.closest(".item"); const it = state.items.find(x => x.id === card.dataset.id); if (!it) return;
+  const act = el.dataset.act;
+  if (act === "toggle"){ it.open = !it.open; card.classList.toggle("open", it.open); if (it.open && it.newIds && it.newIds.length){ /* keep NEW until next check */ } save(); }
+  else if (act === "more") toggleMore(el);
+  else if (act === "recheck") runCheck(it);
+  else if (act === "remove"){ confirmBox(`Remove ${esc(it.label)}?`, "You can add it again anytime.", "Remove", () => { state.items = state.items.filter(x=>x!==it); save(); render(); }); }
+});
+document.addEventListener("click", e => { const t = e.target.closest("[data-add]"); if (t) startAdd(t.dataset.add); });
+$("#fab").onclick = () => startAdd();
+$("#checkAllBtn").onclick = checkAll;
+$("#upgradeBtn").onclick = () => showPaywall(false);
+$("#shareBtn").onclick = async () => {
+  const url = CONFIG.shareUrl || location.origin + location.pathname;
+  const text = `I just checked my car and the stuff in my house for recalls with Recall Radar. It's free: ${url}`;
+  try { await navigator.clipboard.writeText(text); toast("Copied! Paste it in a text or post."); }
+  catch(e){ openSheet(sheetTop("Share Recall Radar","Copy this message:") + `<textarea class="in" rows="4" style="width:100%">${esc(text)}</textarea>`); }
+};
+$("#exportBtn").onclick = async () => {
+  const data = JSON.stringify({ app:"recall-radar", v:1, items: state.items.map(({type,label,q})=>({type,label,q})) });
+  try { await navigator.clipboard.writeText(data); toast("List copied. Save it in your notes."); }
+  catch(e){ openSheet(sheetTop("Your list","Copy and save this text:") + `<textarea class="in" rows="6" style="width:100%">${esc(data)}</textarea>`); }
+};
+$("#importBtn").onclick = () => {
+  openSheet(sheetTop("Restore a list","Paste the text you saved.") + `<textarea class="in" id="imp" rows="6" style="width:100%"></textarea><div class="err" id="impErr"></div><button class="btn btn-primary btn-block" id="impBtn" style="margin-top:12px">Restore</button>`);
+  $("#impBtn").onclick = () => {
+    try { const d = JSON.parse($("#imp").value); if (d.app !== "recall-radar" || !Array.isArray(d.items)) throw 0;
+      const valid = d.items.filter(i => TYPES[i.type] && i.q && i.label).map(i => ({ id: uid(), type: i.type, label: String(i.label).slice(0,80), q: i.q, added: Date.now() }));
+      state.items = valid.concat(state.items); save(); closeSheet(); show("home"); render(); checkAll();
+    } catch(e){ $("#impErr").textContent = "That doesn't look like a Recall Radar list."; }
+  };
+};
+$("#resetBtn").onclick = () => confirmBox("Clear everything?", "This removes your whole list from this device.", "Clear", () => { state.items = []; state.feedCache = {}; save(); render(); });
+$("#installBtn").onclick = () => {
+  if (deferredInstall) { deferredInstall.prompt(); deferredInstall = null; return; }
+  openSheet(sheetTop("Add to your home screen") + `
+    <p><b>iPhone (Safari):</b> tap the Share button <span aria-hidden="true">⬆︎</span>, then <b>Add to Home Screen</b>.</p>
+    <p><b>Android (Chrome):</b> tap the menu <b>⋮</b>, then <b>Add to Home screen</b> or <b>Install app</b>.</p>
+    <p class="hint">It will open full-screen like a regular app.</p>`);
+};
+function confirmBox(title, msg, okText, onOk){
+  openSheet(sheetTop(title, msg) + `<div style="display:flex;gap:10px;margin-top:6px"><button class="btn btn-light btn-block" data-close>Cancel</button><button class="btn btn-primary btn-block" id="okBtn" style="background:var(--red)">${esc(okText)}</button></div>`);
+  $("#okBtn").onclick = () => { closeSheet(); onOk(); };
+}
+let toastT; function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove("show"), 2400); }
+
+/* ---------- views ---------- */
+function show(v){
+  ["home","latest","settings"].forEach(k => $("#view-"+k).classList.toggle("hidden", k !== v));
+  document.querySelectorAll(".tabbar button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  $("#fab").classList.toggle("hidden", v !== "home" || !state.items.length);
+  if (v === "latest") loadFeed();
+  window.scrollTo(0,0);
+}
+document.querySelector(".tabbar").addEventListener("click", e => { const b = e.target.closest("button"); if (b) show(b.dataset.v); });
+
+/* ---------- install / offline ---------- */
+let deferredInstall = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredInstall = e; $("#installBtn").textContent = "Install"; });
+if (!DEMO && "serviceWorker" in navigator && location.protocol === "https:") { try { navigator.serviceWorker.register("sw.js").catch(()=>{}); } catch(e){} }
+
+/* ---------- demo data (preview only; clearly labeled) ---------- */
+function demoItems(){ return [
+  { id:"d1", type:"vehicle", label:"2019 Sample Motors Roadster", q:{year:"2019",make:"SAMPLE",model:"ROADSTER"}, open:true },
+  { id:"d2", type:"drug", label:"Sample Eye Drops", q:{term:"sample eye drops"} },
+  { id:"d3", type:"product", label:"Crib", q:{term:"sample crib"} }
+]; }
+function demoFetch(url){
+  return new Promise(res => setTimeout(() => res(demoResponse(url)), 450));
+}
+function demoResponse(url){
+  if (url.includes("recallsByVehicle")) return { Count:2, results:[
+    { Manufacturer:"Sample Motors (demo)", NHTSACampaignNumber:"SAMPLE-01", parkIt:false, parkOutSide:true, ReportReceivedDate:"14/03/2025", Component:"ELECTRICAL SYSTEM: WIRING", Summary:"SAMPLE DATA. This is an example of how a vehicle recall appears in Recall Radar. A real notice describes the defect here.", Consequence:"Example: a short circuit could increase the risk of a fire.", Remedy:"Example: dealers will inspect and repair the wiring free of charge." },
+    { Manufacturer:"Sample Motors (demo)", NHTSACampaignNumber:"SAMPLE-02", parkIt:false, parkOutSide:false, ReportReceivedDate:"02/09/2024", Component:"AIR BAGS", Summary:"SAMPLE DATA. Example recall text for the preview.", Consequence:"Example consequence text.", Remedy:"Example remedy text." } ]};
+  if (url.includes("/drug/enforcement") && url.includes("Class")) return { results:[1,2,3].map(i=>({ recall_number:"SAMPLE-D"+i, classification:"Class I", status:"Ongoing", product_description:"Sample medicine product "+i+" (preview data)", reason_for_recall:"SAMPLE DATA. Real recalls show the FDA's stated reason here.", recalling_firm:"Sample Pharma Co.", code_info:"Lot SAMPLE"+i, distribution_pattern:"Nationwide (example)", recall_initiation_date:"2026100"+i })) };
+  if (url.includes("/food/enforcement")) return { results:[1,2,3,4].map(i=>({ recall_number:"SAMPLE-F"+i, classification:"Class I", status:"Ongoing", product_description:"Sample food product "+i+" (preview data)", reason_for_recall:"SAMPLE DATA. Real recalls show the reason, such as an undeclared allergen.", recalling_firm:"Sample Foods Inc.", code_info:"Best by dates (example)", distribution_pattern:"Example states", recall_initiation_date:"2026101"+i })) };
+  if (url.includes("/drug/enforcement")) return { results:[{ recall_number:"SAMPLE-D9", classification:"Class II", status:"Ongoing", product_description:"Sample Eye Drops 0.5 oz (preview data)", reason_for_recall:"SAMPLE DATA. Example: lack of sterility assurance.", recalling_firm:"Sample Pharma Co.", code_info:"Lots SAMPLE-123, SAMPLE-456", distribution_pattern:"Nationwide (example)", recall_initiation_date:"20260920" }] };
+  if (url.includes("saferproducts")) return url.includes("RecallTitle") ? [] : [{ RecallID:1, RecallNumber:"SAMPLE-P1", RecallDate:"2026-10-02T00:00:00", Title:"Sample Baby Co. Recalls Example Cribs (preview data)", Description:"SAMPLE DATA. Real CPSC notices describe the product and model numbers here.", URL:"https://www.cpsc.gov/Recalls", Hazards:[{Name:"Example: the crib side can detach, posing an entrapment hazard."}], Remedies:[{Name:"Example: stop using the crib and contact the company for a free repair kit."}], Retailers:[{Name:"Example Store"}], Products:[{NumberOfUnits:"About 10,000 (example)"}] }];
+  if (url.includes("modelYears")) return { results:["2026","2025","2024","2023"].map(y=>({modelYear:y})) };
+  if (url.includes("/makes")) return { results:[{make:"SAMPLE"}] };
+  if (url.includes("/models")) return { results:[{model:"ROADSTER"}] };
+  return { results: [] };
+}
+
+/* ---------- start ---------- */
+load();
+if (DEMO) { $("#demoBanner").classList.remove("hidden"); }
+render();
+// Refresh items that haven't been checked in 12 hours
+const stale = state.items.filter(it => !it.lastChecked || Date.now() - it.lastChecked > 12*3600*1000);
+(async () => { for (const it of stale) await runCheck(it, {quiet:true}); })();
+window.__rr = { state, render, getJSON, checkItem };
+})();
+</script>
+</body>
+</html>

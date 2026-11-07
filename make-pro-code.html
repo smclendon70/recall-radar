@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Make a Pro code — Recall Radar owner tool</title>
+<style>body{font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;padding:24px 18px;line-height:1.5}input,button,textarea{font:inherit;padding:10px;border-radius:10px;border:1px solid #cfd6df;width:100%;box-sizing:border-box}button{background:#ff5a1f;color:#fff;border:0;margin-top:10px;font-weight:600}textarea{margin-top:10px}</style>
+</head><body>
+<h1>Make a Pro unlock code</h1>
+<p>For the app owner only. Type a secret code (for example <b>RADAR-GOLD-7731</b>). This tool turns it into a "fingerprint" you paste into the app's CONFIG. The real code is never stored in the app, so people can't find it by peeking at the code.</p>
+<input id="c" placeholder="Your secret code">
+<button id="b">Make fingerprint</button>
+<textarea id="o" rows="3" readonly placeholder="Fingerprint appears here"></textarea>
+<p>Then in <b>index.html</b>, find <code>proCodeHashes: []</code> and put the fingerprint inside quotes, like:<br><code>proCodeHashes: ["paste-it-here"]</code></p>
+<p>Put the secret code on your payment provider's "thank you" page or receipt so buyers can unlock Pro.</p>
+<script>
+document.getElementById("b").onclick = async () => {
+  const c = document.getElementById("c").value.trim().toUpperCase();
+  if (!c) return;
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(c));
+  document.getElementById("o").value = [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+};
+</script>
+</body></html>
